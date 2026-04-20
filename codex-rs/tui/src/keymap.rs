@@ -481,7 +481,7 @@ impl RuntimeKeymap {
                 jump_top: default_bindings![plain(KeyCode::Home)],
                 jump_bottom: default_bindings![plain(KeyCode::End)],
                 close: default_bindings![plain(KeyCode::Char('q')), ctrl(KeyCode::Char('c'))],
-                close_transcript: default_bindings![ctrl(KeyCode::Char('t'))],
+                close_transcript: default_bindings![ctrl(KeyCode::Char('o'))],
             },
             list: ListKeymap {
                 move_up: default_bindings![
