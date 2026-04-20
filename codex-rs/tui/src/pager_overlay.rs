@@ -1,7 +1,7 @@
 //! Overlay UIs rendered in an alternate screen.
 //!
 //! This module implements the pager-style overlays used by the TUI, including the transcript
-//! overlay (`Ctrl+T`) that renders a full history view separate from the main viewport.
+//! overlay (`Ctrl+O`) that renders a full history view separate from the main viewport.
 //!
 //! The transcript overlay renders committed transcript cells plus an optional render-only live tail
 //! derived from the current in-flight active cell. Because rebuilding wrapped `Line`s on every draw
@@ -607,7 +607,7 @@ impl TranscriptOverlay {
     /// mutates or animates so the cached tail stays fresh.
     ///
     /// Passing a key that does not change on in-place active-cell mutations will freeze the tail in
-    /// `Ctrl+T` while the main viewport continues to update.
+    /// `Ctrl+O` while the main viewport continues to update.
     pub(crate) fn sync_live_tail(
         &mut self,
         width: u16,

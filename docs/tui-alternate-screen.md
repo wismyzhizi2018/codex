@@ -112,7 +112,7 @@ We use `auto` detection instead of always disabling in Zellij because:
 
 ### Transcript Pager
 
-Codex's transcript pager (opened with Ctrl+T) provides an alternative way to review conversation history, even in fullscreen mode. However, this is not as seamless as natural scrollback.
+Codex's transcript pager (opened with Ctrl+O) provides an alternative way to review conversation history, even in fullscreen mode. However, this is not as seamless as natural scrollback.
 
 ## For Developers
 
