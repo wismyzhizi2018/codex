@@ -50,6 +50,10 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: x86_64-unknown-linux-musl
+      - name: Verify musl target installed
+        run: |
+          rustup target list --installed
+          rustup target add x86_64-unknown-linux-musl || true
       - name: Install Zig
         uses: mlugg/setup-zig@v1
         with:
