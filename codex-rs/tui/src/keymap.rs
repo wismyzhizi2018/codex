@@ -399,7 +399,7 @@ impl RuntimeKeymap {
     fn built_in_defaults() -> Self {
         Self {
             app: AppKeymap {
-                open_transcript: default_bindings![ctrl(KeyCode::Char('t'))],
+                open_transcript: default_bindings![ctrl(KeyCode::Char('o'))],
                 open_external_editor: default_bindings![ctrl(KeyCode::Char('g'))],
                 copy: default_bindings![ctrl(KeyCode::Char('o'))],
                 clear_terminal: default_bindings![ctrl(KeyCode::Char('l'))],

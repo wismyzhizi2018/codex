@@ -599,7 +599,7 @@ impl ChatComposer {
             history_search_next_keys: default_keymap.composer.history_search_next.clone(),
             editor_keymap: default_editor_keymap,
             footer_external_editor_key: Some(key_hint::ctrl(KeyCode::Char('g'))),
-            footer_show_transcript_key: Some(key_hint::ctrl(KeyCode::Char('t'))),
+            footer_show_transcript_key: Some(key_hint::ctrl(KeyCode::Char('o'))),
             footer_insert_newline_key: footer_insert_newline_key(
                 &default_keymap.editor.insert_newline,
                 use_shift_enter_hint,
