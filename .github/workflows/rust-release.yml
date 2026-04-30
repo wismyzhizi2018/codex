@@ -1,4 +1,4 @@
-sha: 05b7df913818003a08d4fa2b2e070a762ba2a326
+# sha: 05b7df913818003a08d4fa2b2e070a762ba2a326
 # Simplified release workflow for @cc-claw/codex fork.
 # To release:
 #   git tag -a rust-v0.1.0 -m "Release 0.1.0"
