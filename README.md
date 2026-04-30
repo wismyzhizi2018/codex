@@ -1,60 +1,58 @@
-<p align="center"><code>npm i -g @cc-claw/codex</code></p>
-<p align="center"><strong>Codex CLI</strong> is a coding agent from OpenAI that runs locally on your computer.
-<p align="center">
-  <img src="https://github.com/openai/codex/blob/main/.github/codex-cli-splash.png" alt="Codex CLI splash" width="80%" />
-</p>
-</br>
-If you want Codex in your code editor (VS Code, Cursor, Windsurf), <a href="https://developers.openai.com/codex/ide">install in your IDE.</a>
-</br>If you want the desktop app experience, run <code>codex app</code> or visit <a href="https://chatgpt.com/codex?app-landing-page=true">the Codex App page</a>.
-</br>If you are looking for the <em>cloud-based agent</em> from OpenAI, <strong>Codex Web</strong>, go to <a href="https://chatgpt.com/codex">chatgpt.com/codex</a>.</p>
+# Codex CLI (cc-claw fork)
+
+`npm i -g @cc-claw/codex`
+
+![npm version](https://img.shields.io/npm/v/@cc-claw/codex?label=npm)
+![license](https://img.shields.io/badge/license-Apache--2.0-blue)
+![build status](https://img.shields.io/github/actions/workflow/status/wismyzhizi2018/codex/rust-release.yml?label=build)
+![Vibe Coding](https://img.shields.io/badge/AI-Vibe%20Coding%20with%20MiMo-orange)
+
+> 基于 [OpenAI Codex CLI](https://github.com/openai/codex) 的个人定制分支，使用小米 [MiMo V2.5 Pro](https://mimo.xiaomi.com/) 大模型 Vibe Coding 开发
 
 ---
 
-## Quickstart
+## 特性
 
-### Installing and running Codex CLI
+- 对齐 Claude Code 风格的快捷键体验
+- 基于 OpenAI Codex CLI，保持核心功能完整
+- 不定期同步上游更新
 
-Install globally with your preferred package manager:
+## 定制内容
+
+| 功能 | 原版 | 本分支 |
+|------|------|--------|
+| Transcript overlay | `Ctrl+T` | `Ctrl+O` |
+| 更多定制 | ... | 持续调整中 |
+
+## 安装
 
 ```shell
-# Install using npm
 npm install -g @cc-claw/codex
+codex
 ```
-
-```shell
-# Install using Homebrew
-brew install --cask codex
-```
-
-Then simply run `codex` to get started.
 
 <details>
-<summary>You can also go to the <a href="https://github.com/openai/codex/releases/latest">latest GitHub Release</a> and download the appropriate binary for your platform.</summary>
+<summary>下载二进制文件</summary>
 
-Each GitHub Release contains many executables, but in practice, you likely want one of these:
+从 [GitHub Releases](https://github.com/wismyzhizi2018/codex/releases) 下载：
 
-- macOS
-  - Apple Silicon/arm64: `codex-aarch64-apple-darwin.tar.gz`
-  - x86_64 (older Mac hardware): `codex-x86_64-apple-darwin.tar.gz`
-- Linux
-  - x86_64: `codex-x86_64-unknown-linux-musl.tar.gz`
-  - arm64: `codex-aarch64-unknown-linux-musl.tar.gz`
-
-Each archive contains a single entry with the platform baked into the name (e.g., `codex-x86_64-unknown-linux-musl`), so you likely want to rename it to `codex` after extracting it.
+| 平台 | 文件 |
+|------|------|
+| Windows x64 | `codex-win32-x64` |
+| macOS ARM64 | `codex-darwin-arm64` |
+| macOS x64 | `codex-darwin-x64` |
+| Linux x64 | `codex-linux-x64` |
 
 </details>
 
-### Using Codex with your ChatGPT plan
+## 上游同步
 
-Run `codex` and select **Sign in with ChatGPT**. We recommend signing into your ChatGPT account to use Codex as part of your Plus, Pro, Business, Edu, or Enterprise plan. [Learn more about what's included in your ChatGPT plan](https://help.openai.com/en/articles/11369540-codex-in-chatgpt).
+不定期同步 [OpenAI Codex](https://github.com/openai/codex) 上游更新。
 
-You can also use Codex with an API key, but this requires [additional setup](https://developers.openai.com/codex/auth#sign-in-with-an-api-key).
+---
 
-## Docs
+**MiMo 大模型驱动开发** | [官网](https://mimo.xiaomi.com/) | [开放平台](https://platform.xiaomimimo.com?ref=JBEYTF)
 
-- [**Codex Documentation**](https://developers.openai.com/codex)
-- [**Contributing**](./docs/contributing.md)
-- [**Installing & building**](./docs/install.md)
-- [**Open source fund**](./docs/open-source-fund.md)
+> 新用户注册即得 **¥10 API 体验金**（40天有效）| 邀请码：`JBEYTF`
 
-This repository is licensed under the [Apache-2.0 License](LICENSE).
+**觉得有用？给个 Star!**
