@@ -55,6 +55,8 @@ jobs:
         with:
           version: 0.14.0
       - name: Install musl build tools
+        env:
+          TARGET: x86_64-unknown-linux-musl
         run: bash "${GITHUB_WORKSPACE}/.github/scripts/install-musl-build-tools.sh"
       - name: Build
         run: |
