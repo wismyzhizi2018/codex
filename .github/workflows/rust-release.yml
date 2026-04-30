@@ -23,9 +23,17 @@ jobs:
           [[ "${GITHUB_REF_NAME}" =~ ^rust-v[0-9]+\.[0-9]+\.[0-9]+(-(alpha|beta)(\.[0-9]+)?)?$ ]] \
             || { echo "Tag '${GITHUB_REF_NAME}' doesn't match expected format"; exit 1; }
           tag_ver="${GITHUB_REF_NAME#rust-v}"
-          cargo_ver="$(grep -m1 '^version' codex-rs/Cargo.toml | sed -E 's/version *= *"([^"]+)".*/\1/')"
+          cargo_ver_raw="$(grep -m1 "^version" codex-rs/Cargo.toml)"
+          cargo_ver="$(echo "$cargo_ver_raw" | sed -E "s/version[[:space:]]*=[[:space:]]*\"([^\"]+)\".*/\1/")"
+          echo "DEBUG: GITHUB_REF_TYPE=$GITHUB_REF_TYPE"
+          echo "DEBUG: GITHUB_REF_NAME=$GITHUB_REF_NAME"
+          echo "DEBUG: tag_ver=$tag_ver"
+          echo "DEBUG: cargo_ver_raw=$cargo_ver_raw"
+          echo "DEBUG: cargo_ver=$cargo_ver"
+          echo "DEBUG: Cargo.toml first 10 lines:"
+          head -n 10 codex-rs/Cargo.toml
           [[ "${tag_ver}" == "${cargo_ver}" ]] \
-            || { echo "Tag ${tag_ver} != Cargo.toml ${cargo_ver}"; exit 1; }
+            || { echo "FAIL: Tag '$tag_ver' != Cargo.toml '$cargo_ver'"; exit 1; }
           echo "Tag and Cargo.toml agree (${tag_ver})"
   build-linux:
     needs: tag-check
