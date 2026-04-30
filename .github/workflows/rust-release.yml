@@ -1,3 +1,4 @@
+sha: 05b7df913818003a08d4fa2b2e070a762ba2a326
 # Simplified release workflow for @cc-claw/codex fork.
 # To release:
 #   git tag -a rust-v0.1.0 -m "Release 0.1.0"
@@ -88,7 +89,7 @@ jobs:
   build-darwin-x64:
     needs: tag-check
     name: Build - macOS x64
-    runs-on: macos-13
+    runs-on: macos-latest
     timeout-minutes: 60
     defaults:
       run:
@@ -300,3 +301,4 @@ jobs:
           set -euo pipefail
           echo "Publishing main package..."
           npm publish dist/npm/cc-claw-codex-*.tgz --access public || echo "Skipped (may already exist)"
+
