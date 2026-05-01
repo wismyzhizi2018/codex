@@ -7,7 +7,6 @@ on:
   push:
     tags:
       - "rust-v*.*.*"
-  workflow_dispatch:
 concurrency:
   group: ${{ github.workflow }}
   cancel-in-progress: false
@@ -121,23 +120,39 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p dist/npm
+
+          # Each platform: copy binaries + npm pack
           for entry in linux-x64-binaries win32-x64-binaries; do
             [ ! -d "$entry" ] && continue
             case "$entry" in
               linux-x64-binaries) pkg_name="codex-linux-x64" platform="linux" arch="x64" ;;
               win32-x64-binaries) pkg_name="codex-win32-x64" platform="win32" arch="x64" ;;
             esac
+
             pkg_path="dist/npm-tmp/${pkg_name}"
             mkdir -p "${pkg_path}/bin"
-            cp "${entry}/codex" "${pkg_path}/bin/" 2>/dev/null \
-              || cp "${entry}/codex.exe" "${pkg_path}/bin/" 2>/dev/null \
-              || true
-            [ -f "${entry}/codex-responses-api-proxy" ] \
-              && cp "${entry}/codex-responses-api-proxy" "${pkg_path}/bin/" || true
-            [ -f "${entry}/codex-responses-api-proxy.exe" ] \
-              && cp "${entry}/codex-responses-api-proxy.exe" "${pkg_path}/bin/" || true
-            python3 scripts/make-npm-package.py platform \
-              "${pkg_path}" "${platform}" "${arch}" "${VERSION}"
+            cp "${entry}/codex" "${pkg_path}/bin/" 2>/dev/null || cp "${entry}/codex.exe" "${pkg_path}/bin/" 2>/dev/null || true
+            [ -f "${entry}/codex-responses-api-proxy" ] && cp "${entry}/codex-responses-api-proxy" "${pkg_path}/bin/" || true
+            [ -f "${entry}/codex-responses-api-proxy.exe" ] && cp "${entry}/codex-responses-api-proxy.exe" "${pkg_path}/bin/" || true
+
+            cat > "${pkg_path}/package.json" <<PKGJSON
+{
+  "name": "@cc-claw/codex-${platform}-${arch}",
+  "version": "${VERSION}",
+  "description": "Codex CLI native binary for ${platform}-${arch}",
+  "license": "Apache-2.0",
+  "os": ["${platform}"],
+  "cpu": ["${arch}"],
+  "type": "module",
+  "engines": {
+    "node": ">=16"
+  },
+  "files": ["bin"],
+  "bin": {
+    "codex": "bin/codex"
+  }
+}
+PKGJSON
             cd "${pkg_path}"
             npm pack --pack-destination "${GITHUB_WORKSPACE}/dist/npm"
             cd "${GITHUB_WORKSPACE}"
@@ -150,8 +165,28 @@ jobs:
           set -euo pipefail
           mkdir -p dist/npm-tmp/codex-main/bin
           cp codex-cli/bin/codex.js dist/npm-tmp/codex-main/bin/
-          python3 scripts/make-npm-package.py main \
-            dist/npm-tmp/codex-main "${VERSION}"
+          cat > dist/npm-tmp/codex-main/package.json <<PKGJSON
+{
+  "name": "@cc-claw/codex",
+  "version": "${VERSION}",
+  "description": "Codex CLI - coding agent (cc-claw fork)",
+  "license": "Apache-2.0",
+  "bin": {
+    "codex": "bin/codex.js"
+  },
+  "type": "module",
+  "engines": {
+    "node": ">=16"
+  },
+  "files": [
+    "bin"
+  ],
+  "optionalDependencies": {
+    "@cc-claw/codex-linux-x64": "${VERSION}",
+    "@cc-claw/codex-win32-x64": "${VERSION}"
+  }
+}
+PKGJSON
           cd dist/npm-tmp/codex-main
           npm pack --pack-destination "${GITHUB_WORKSPACE}/dist/npm"
 
@@ -162,13 +197,6 @@ jobs:
           tag_name: ${{ github.ref_name }}
           files: dist/npm/*.tgz
 
-      - name: Upload npm tarballs as artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: npm-tarballs
-          path: dist/npm/*.tgz
-          retention-days: 5
-
   publish-npm:
     needs: release
     name: Publish to npm
@@ -176,22 +204,26 @@ jobs:
     permissions:
       contents: read
     steps:
-      - name: Download npm tarballs from artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: npm-tarballs
-          path: dist/npm
+      - name: Download npm tarballs from release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          mkdir -p dist/npm
+          gh release download "$RELEASE_TAG" \
+            --pattern "*.tgz" \
+            --dir dist/npm \
+            --skip-existing
 
-      - name: Publish platform packages first
+      - name: Publish platform packages (setup)
         uses: actions/setup-node@v4
         with:
           node-version: 22
           registry-url: "https://registry.npmjs.org"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-      - name: Run platform publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish platform packages (run)
         run: |
           set -euo pipefail
           cd dist/npm
@@ -201,16 +233,15 @@ jobs:
             npm publish "$f" --access public 2>&1 || echo "Skipped: $f may already exist"
           done
 
-      - name: Publish main package
+      - name: Publish main package (setup)
         uses: actions/setup-node@v4
         with:
           node-version: 22
           registry-url: "https://registry.npmjs.org"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-      - name: Run main publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish main package (run)
         run: |
           set -euo pipefail
           cd dist/npm
