@@ -20,17 +20,20 @@ jobs:
         run: |
           mkdir -p dist/npm
           curl -fsSL \
-            -H "Authorization: token $GH_TOKEN" \
+            -L \
+            -H "Authorization: Bearer $GH_TOKEN" \
             -H "Accept: application/octet-stream" \
             "https://api.github.com/repos/wismyzhizi2018/codex/releases/assets/409760987" \
             -o "dist/npm/cc-claw-codex-0.1.23.tgz"
           curl -fsSL \
-            -H "Authorization: token $GH_TOKEN" \
+            -L \
+            -H "Authorization: Bearer $GH_TOKEN" \
             -H "Accept: application/octet-stream" \
             "https://api.github.com/repos/wismyzhizi2018/codex/releases/assets/409760989" \
             -o "dist/npm/cc-claw-codex-linux-x64-0.1.23.tgz"
           curl -fsSL \
-            -H "Authorization: token $GH_TOKEN" \
+            -L \
+            -H "Authorization: Bearer $GH_TOKEN" \
             -H "Accept: application/octet-stream" \
             "https://api.github.com/repos/wismyzhizi2018/codex/releases/assets/409760988" \
             -o "dist/npm/cc-claw-codex-win32-x64-0.1.23.tgz"
