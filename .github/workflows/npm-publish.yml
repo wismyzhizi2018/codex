@@ -19,10 +19,21 @@ jobs:
       - name: Download npm tarballs from GitHub release
         run: |
           mkdir -p dist/npm
-          gh release download "rust-v0.1.23" \
-            --pattern "*.tgz" \
-            --dir dist/npm \
-            --skip-existing
+          curl -fsSL \
+            -H "Authorization: token $GH_TOKEN" \
+            -H "Accept: application/octet-stream" \
+            "https://api.github.com/repos/wismyzhizi2018/codex/releases/assets/409760987" \
+            -o "dist/npm/cc-claw-codex-0.1.23.tgz"
+          curl -fsSL \
+            -H "Authorization: token $GH_TOKEN" \
+            -H "Accept: application/octet-stream" \
+            "https://api.github.com/repos/wismyzhizi2018/codex/releases/assets/409760989" \
+            -o "dist/npm/cc-claw-codex-linux-x64-0.1.23.tgz"
+          curl -fsSL \
+            -H "Authorization: token $GH_TOKEN" \
+            -H "Accept: application/octet-stream" \
+            "https://api.github.com/repos/wismyzhizi2018/codex/releases/assets/409760988" \
+            -o "dist/npm/cc-claw-codex-win32-x64-0.1.23.tgz"
           ls -la dist/npm/
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
