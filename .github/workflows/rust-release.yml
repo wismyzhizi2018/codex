@@ -28,10 +28,7 @@ jobs:
           echo "DEBUG: GITHUB_REF_TYPE=$GITHUB_REF_TYPE"
           echo "DEBUG: GITHUB_REF_NAME=$GITHUB_REF_NAME"
           echo "DEBUG: tag_ver=$tag_ver"
-          echo "DEBUG: cargo_ver_raw=$cargo_ver_raw"
           echo "DEBUG: cargo_ver=$cargo_ver"
-          echo "DEBUG: Cargo.toml first 10 lines:"
-          head -n 10 codex-rs/Cargo.toml
           [[ "${tag_ver}" == "${cargo_ver}" ]] \
             || echo "WARN: Tag=$tag_ver != Cargo=$cargo_ver (continuing anyway)"
           echo "Tag and Cargo.toml agree (${tag_ver})"
@@ -78,8 +75,6 @@ jobs:
         include:
           - target: aarch64-apple-darwin
             artifact_name: darwin-arm64-binaries
-          - target: x86_64-apple-darwin
-            artifact_name: darwin-x64-binaries
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
@@ -179,7 +174,6 @@ jobs:
           }
           create_platform_pkg "codex-linux-x64" "dist/binaries/linux-x64-binaries" "linux" "x64"
           create_platform_pkg "codex-darwin-arm64" "dist/binaries/darwin-arm64-binaries" "darwin" "arm64"
-          create_platform_pkg "codex-darwin-x64" "dist/binaries/darwin-x64-binaries" "darwin" "x64"
           create_platform_pkg "codex-win32-x64" "dist/binaries/win32-x64-binaries" "win32" "x64"
       - name: Create main package
         env:
@@ -207,7 +201,6 @@ jobs:
             "optionalDependencies": {
               "@cc-claw/codex-linux-x64": "${VERSION}",
               "@cc-claw/codex-darwin-arm64": "${VERSION}",
-              "@cc-claw/codex-darwin-x64": "${VERSION}",
               "@cc-claw/codex-win32-x64": "${VERSION}"
             }
           }
