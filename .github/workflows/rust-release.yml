@@ -23,7 +23,7 @@ jobs:
           [[ "${GITHUB_REF_NAME}" =~ ^rust-v[0-9]+\.[0-9]+\.[0-9]+(-(alpha|beta)(\.[0-9]+)?)?$ ]] \
             || { echo "Tag '${GITHUB_REF_NAME}' doesn't match expected format"; exit 1; }
           tag_ver="${GITHUB_REF_NAME#rust-v}"
-          cargo_ver_raw="$(grep -m1 "^version" codex-rs/Cargo.toml || echo 'version = "MISSING"')"
+          cargo_ver_raw="$(grep -m1 "^version" codex-rs/Cargo.toml || echo 'version = \"MISSING\"')"
           cargo_ver="$(echo "$cargo_ver_raw" | sed -E "s/version[[:space:]]*=[[:space:]]*\"([^\"]+)\".*/\1/")"
           echo "DEBUG: GITHUB_REF_TYPE=$GITHUB_REF_TYPE"
           echo "DEBUG: GITHUB_REF_NAME=$GITHUB_REF_NAME"
@@ -32,6 +32,7 @@ jobs:
           [[ "${tag_ver}" == "${cargo_ver}" ]] \
             || echo "WARN: Tag=$tag_ver != Cargo=$cargo_ver (continuing anyway)"
           echo "Tag and Cargo.toml agree (${tag_ver})"
+
   build-linux:
     needs: tag-check
     name: Build - Linux x64
@@ -59,6 +60,7 @@ jobs:
           path: |
             codex-rs/target/release/codex
             codex-rs/target/release/codex-responses-api-proxy
+
   build-windows:
     needs: tag-check
     name: Build - Windows x64
@@ -85,6 +87,7 @@ jobs:
           path: |
             codex-rs/target/x86_64-pc-windows-msvc/release/codex.exe
             codex-rs/target/x86_64-pc-windows-msvc/release/codex-responses-api-proxy.exe
+
   release:
     needs:
       - build-linux
@@ -97,51 +100,64 @@ jobs:
       version: ${{ steps.version.outputs.ver }}
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
+
+      - name: Download binaries
+        uses: actions/download-artifact@v4
         with:
-          path: dist/binaries
-      - name: List artifacts
-        run: ls -R dist/binaries/
-      - name: Determine version
+          pattern: "*-x64-binaries"
+          merge-multiple: false
+
+      - name: Extract version
         id: version
         run: |
-          version="${GITHUB_REF_NAME#rust-v}"
-          echo "ver=${version}" >> "$GITHUB_OUTPUT"
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - name: Create platform npm packages
+          ver="${GITHUB_REF_NAME#rust-v}"
+          echo "ver=$ver" >> $GITHUB_OUTPUT
+          echo "Tag version: $ver"
+
+      - name: Prepare npm tarballs
         env:
           VERSION: ${{ steps.version.outputs.ver }}
         run: |
           set -euo pipefail
           mkdir -p dist/npm
-          create_platform_pkg() {
-            local pkg_name="$1"
-            local pkg_dir="$2"
-            local os="$3"
-            local cpu="$4"
-            local pkg_path="dist/npm-tmp/${pkg_name}"
-            mkdir -p "${pkg_path}/vendor"
-            cp -r "${pkg_dir}/"* "${pkg_path}/vendor/" 2>/dev/null || true
+
+          # Each platform: copy binaries + npm pack
+          for entry in linux-x64-binaries win32-x64-binaries; do
+            [ ! -d "$entry" ] && continue
+            case "$entry" in
+              linux-x64-binaries) pkg_name="codex-linux-x64" platform="linux" arch="x64" ;;
+              win32-x64-binaries) pkg_name="codex-win32-x64" platform="win32" arch="x64" ;;
+            esac
+
+            pkg_path="dist/npm-tmp/${pkg_name}"
+            mkdir -p "${pkg_path}/bin"
+            cp "${entry}/codex" "${pkg_path}/bin/" 2>/dev/null || cp "${entry}/codex.exe" "${pkg_path}/bin/" 2>/dev/null || true
+            [ -f "${entry}/codex-responses-api-proxy" ] && cp "${entry}/codex-responses-api-proxy" "${pkg_path}/bin/" || true
+            [ -f "${entry}/codex-responses-api-proxy.exe" ] && cp "${entry}/codex-responses-api-proxy.exe" "${pkg_path}/bin/" || true
+
             cat > "${pkg_path}/package.json" <<PKGJSON
-          {
-            "name": "@cc-claw/${pkg_name}",
-            "version": "${VERSION}",
-            "description": "Platform-specific binary for @cc-claw/codex",
-            "license": "Apache-2.0",
-            "os": ["${os}"],
-            "cpu": ["${cpu}"],
-            "files": ["vendor"]
-          }
-          PKGJSON
+{
+  "name": "@cc-claw/codex-${platform}-${arch}",
+  "version": "${VERSION}",
+  "description": "Codex CLI native binary for ${platform}-${arch}",
+  "license": "Apache-2.0",
+  "os": ["${platform}"],
+  "cpu": ["${arch}"],
+  "type": "module",
+  "engines": {
+    "node": ">=16"
+  },
+  "files": ["bin"],
+  "bin": {
+    "codex": "bin/codex"
+  }
+}
+PKGJSON
             cd "${pkg_path}"
             npm pack --pack-destination "${GITHUB_WORKSPACE}/dist/npm"
             cd "${GITHUB_WORKSPACE}"
-          }
-          create_platform_pkg "codex-linux-x64" "dist/binaries/linux-x64-binaries" "linux" "x64"
-          create_platform_pkg "codex-win32-x64" "dist/binaries/win32-x64-binaries" "win32" "x64"
+          done
+
       - name: Create main package
         env:
           VERSION: ${{ steps.version.outputs.ver }}
@@ -150,35 +166,37 @@ jobs:
           mkdir -p dist/npm-tmp/codex-main/bin
           cp codex-cli/bin/codex.js dist/npm-tmp/codex-main/bin/
           cat > dist/npm-tmp/codex-main/package.json <<PKGJSON
-          {
-            "name": "@cc-claw/codex",
-            "version": "${VERSION}",
-            "description": "Codex CLI - coding agent (cc-claw fork)",
-            "license": "Apache-2.0",
-            "bin": {
-              "codex": "bin/codex.js"
-            },
-            "type": "module",
-            "engines": {
-              "node": ">=16"
-            },
-            "files": [
-              "bin"
-            ],
-            "optionalDependencies": {
-              "@cc-claw/codex-linux-x64": "${VERSION}",
-              "@cc-claw/codex-win32-x64": "${VERSION}"
-            }
-          }
-          PKGJSON
+{
+  "name": "@cc-claw/codex",
+  "version": "${VERSION}",
+  "description": "Codex CLI - coding agent (cc-claw fork)",
+  "license": "Apache-2.0",
+  "bin": {
+    "codex": "bin/codex.js"
+  },
+  "type": "module",
+  "engines": {
+    "node": ">=16"
+  },
+  "files": [
+    "bin"
+  ],
+  "optionalDependencies": {
+    "@cc-claw/codex-linux-x64": "${VERSION}",
+    "@cc-claw/codex-win32-x64": "${VERSION}"
+  }
+}
+PKGJSON
           cd dist/npm-tmp/codex-main
           npm pack --pack-destination "${GITHUB_WORKSPACE}/dist/npm"
-      - name: Create GitHub Release
+
+      - name: Upload npm tarballs as release assets
         uses: softprops/action-gh-release@v2
         with:
           name: ${{ steps.version.outputs.ver }}
           tag_name: ${{ github.ref_name }}
-          files: dist/npm/*
+          files: dist/npm/*.tgz
+
   publish-npm:
     needs: release
     name: Publish to npm
@@ -186,31 +204,47 @@ jobs:
     permissions:
       contents: read
     steps:
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          registry-url: "https://registry.npmjs.org"
-      - name: Download npm tarballs
+      - name: Download npm tarballs from release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RELEASE_TAG: ${{ github.ref_name }}
         run: |
           mkdir -p dist/npm
-          gh release download "$RELEASE_TAG" --pattern "*.tgz" --dir dist/npm
+          gh release download "$RELEASE_TAG" \
+            --pattern "*.tgz" \
+            --dir dist/npm \
+            --skip-existing
+
       - name: Publish platform packages first
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: "https://registry.npmjs.org"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           set -euo pipefail
-          for f in dist/npm/@cc-claw-codex-*.tgz; do
-            echo "Publishing $(basename $f)..."
-            npm publish "$f" --access public || echo "Skipped (may already exist)"
+          cd dist/npm
+          for f in @cc-claw-codex-linux*.tgz @cc-claw-codex-win32*.tgz; do
+            [ -f "$f" ] || continue
+            echo "Publishing $f..."
+            npm publish "$f" --access public 2>&1 || echo "Skipped: $f may already exist"
           done
+
       - name: Publish main package
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: "https://registry.npmjs.org"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           set -euo pipefail
-          echo "Publishing main package..."
-          npm publish dist/npm/cc-claw-codex-*.tgz --access public || echo "Skipped (may already exist)"
+          cd dist/npm
+          main_pkg=$(ls @cc-claw-codex-0*.tgz 2>/dev/null | head -1)
+          if [ -n "$main_pkg" ]; then
+            echo "Publishing main: $main_pkg"
+            npm publish "$main_pkg" --access public 2>&1 || echo "Skipped: main may already exist"
+          else
+            echo "No main package tgz found"
+          fi
