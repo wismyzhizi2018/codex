@@ -14,6 +14,8 @@ jobs:
     permissions:
       contents: read
     steps:
+      - uses: actions/checkout@v4
+
       - name: Download npm tarballs from GitHub release
         run: |
           mkdir -p dist/npm
