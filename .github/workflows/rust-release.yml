@@ -59,37 +59,6 @@ jobs:
           path: |
             codex-rs/target/release/codex
             codex-rs/target/release/codex-responses-api-proxy
-  build-darwin:
-    needs: tag-check
-    name: Build - macOS ${{ matrix.target }}
-    runs-on: macos-15-xlarge
-    timeout-minutes: 90
-    defaults:
-      run:
-        working-directory: codex-rs
-    env:
-      CARGO_PROFILE_RELEASE_LTO: thin
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - target: aarch64-apple-darwin
-            artifact_name: darwin-arm64-binaries
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: ${{ matrix.target }}
-      - name: Build
-        run: |
-          cargo build --target ${{ matrix.target }} --release --bin codex --bin codex-responses-api-proxy
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ matrix.artifact_name }}
-          path: |
-            codex-rs/target/${{ matrix.target }}/release/codex
-            codex-rs/target/${{ matrix.target }}/release/codex-responses-api-proxy
   build-windows:
     needs: tag-check
     name: Build - Windows x64
@@ -119,7 +88,6 @@ jobs:
   release:
     needs:
       - build-linux
-      - build-darwin
       - build-windows
     name: Package and Release
     runs-on: ubuntu-latest
@@ -173,7 +141,6 @@ jobs:
             cd "${GITHUB_WORKSPACE}"
           }
           create_platform_pkg "codex-linux-x64" "dist/binaries/linux-x64-binaries" "linux" "x64"
-          create_platform_pkg "codex-darwin-arm64" "dist/binaries/darwin-arm64-binaries" "darwin" "arm64"
           create_platform_pkg "codex-win32-x64" "dist/binaries/win32-x64-binaries" "win32" "x64"
       - name: Create main package
         env:
@@ -200,7 +167,6 @@ jobs:
             ],
             "optionalDependencies": {
               "@cc-claw/codex-linux-x64": "${VERSION}",
-              "@cc-claw/codex-darwin-arm64": "${VERSION}",
               "@cc-claw/codex-win32-x64": "${VERSION}"
             }
           }
