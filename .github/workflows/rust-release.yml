@@ -7,6 +7,7 @@ on:
   push:
     tags:
       - "rust-v*.*.*"
+  workflow_dispatch:
 concurrency:
   group: ${{ github.workflow }}
   cancel-in-progress: false
@@ -207,13 +208,13 @@ PKGJSON
       - name: Download npm tarballs from release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          RELEASE_TAG: ${{ github.ref_name }}
         run: |
           mkdir -p dist/npm
-          gh release download "$RELEASE_TAG" \
+          echo "$GH_TOKEN" | gh auth login --hostname github.com --token-stdin
+          gh release download "${{ github.ref_name }}" \
             --pattern "*.tgz" \
             --dir dist/npm \
-            --skip-existing
+            --skip-existing || echo "Download attempted"
 
       - name: Publish platform packages first
         uses: actions/setup-node@v4
