@@ -15,24 +15,23 @@ jobs:
       contents: read
     steps:
       - name: Download npm tarballs from GitHub release
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           mkdir -p dist/npm
-          echo "$GH_TOKEN" | gh auth login --hostname github.com --token-stdin
           gh release download "rust-v0.1.23" \
             --pattern "*.tgz" \
             --dir dist/npm \
             --skip-existing
           ls -la dist/npm/
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Publish platform packages
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
           registry-url: "https://registry.npmjs.org"
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish platform packages
         run: |
           set -euo pipefail
           cd dist/npm
@@ -41,14 +40,10 @@ jobs:
             echo "Publishing $f..."
             npm publish "$f" --access public 2>&1 || echo "Skipped: $f"
           done
-
-      - name: Publish main package
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          registry-url: "https://registry.npmjs.org"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish main package
         run: |
           set -euo pipefail
           cd dist/npm
@@ -59,3 +54,5 @@ jobs:
           else
             echo "No main package tgz found"
           fi
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
