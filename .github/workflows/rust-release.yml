@@ -136,23 +136,23 @@ jobs:
             [ -f "${entry}/codex-responses-api-proxy.exe" ] && cp "${entry}/codex-responses-api-proxy.exe" "${pkg_path}/bin/" || true
 
             cat > "${pkg_path}/package.json" <<PKGJSON
-{
-  "name": "@cc-claw/codex-${platform}-${arch}",
-  "version": "${VERSION}",
-  "description": "Codex CLI native binary for ${platform}-${arch}",
-  "license": "Apache-2.0",
-  "os": ["${platform}"],
-  "cpu": ["${arch}"],
-  "type": "module",
-  "engines": {
-    "node": ">=16"
-  },
-  "files": ["bin"],
-  "bin": {
-    "codex": "bin/codex"
-  }
-}
-PKGJSON
+            {
+              "name": "@cc-claw/codex-${platform}-${arch}",
+              "version": "${VERSION}",
+              "description": "Codex CLI native binary for ${platform}-${arch}",
+              "license": "Apache-2.0",
+              "os": ["${platform}"],
+              "cpu": ["${arch}"],
+              "type": "module",
+              "engines": {
+                "node": ">=16"
+              },
+              "files": ["bin"],
+              "bin": {
+                "codex": "bin/codex"
+              }
+            }
+            PKGJSON
             cd "${pkg_path}"
             npm pack --pack-destination "${GITHUB_WORKSPACE}/dist/npm"
             cd "${GITHUB_WORKSPACE}"
@@ -166,27 +166,27 @@ PKGJSON
           mkdir -p dist/npm-tmp/codex-main/bin
           cp codex-cli/bin/codex.js dist/npm-tmp/codex-main/bin/
           cat > dist/npm-tmp/codex-main/package.json <<PKGJSON
-{
-  "name": "@cc-claw/codex",
-  "version": "${VERSION}",
-  "description": "Codex CLI - coding agent (cc-claw fork)",
-  "license": "Apache-2.0",
-  "bin": {
-    "codex": "bin/codex.js"
-  },
-  "type": "module",
-  "engines": {
-    "node": ">=16"
-  },
-  "files": [
-    "bin"
-  ],
-  "optionalDependencies": {
-    "@cc-claw/codex-linux-x64": "${VERSION}",
-    "@cc-claw/codex-win32-x64": "${VERSION}"
-  }
-}
-PKGJSON
+            {
+              "name": "@cc-claw/codex",
+              "version": "${VERSION}",
+              "description": "Codex CLI - coding agent (cc-claw fork)",
+              "license": "Apache-2.0",
+              "bin": {
+                "codex": "bin/codex.js"
+              },
+              "type": "module",
+              "engines": {
+                "node": ">=16"
+              },
+              "files": [
+                "bin"
+              ],
+              "optionalDependencies": {
+                "@cc-claw/codex-linux-x64": "${VERSION}",
+                "@cc-claw/codex-win32-x64": "${VERSION}"
+              }
+            }
+            PKGJSON
           cd dist/npm-tmp/codex-main
           npm pack --pack-destination "${GITHUB_WORKSPACE}/dist/npm"
 
