@@ -174,6 +174,7 @@ jobs:
         run: |
           mkdir -p dist/npm
           gh release download "$RELEASE_TAG" \
+            --repo wismyzhizi2018/codex \
             --pattern "*.tgz" \
             --dir dist/npm \
             --skip-existing
