@@ -191,7 +191,7 @@ jobs:
         run: |
           set -euo pipefail
           cd dist/npm
-          for f in @cc-claw-codex-linux*.tgz @cc-claw-codex-win32*.tgz; do
+          for f in cc-claw-codex-linux*.tgz cc-claw-codex-win32*.tgz; do
             [ -f "$f" ] || continue
             echo "Publishing $f..."
             npm publish "$f" --access public 2>&1 || echo "Skipped: $f may already exist"
@@ -209,7 +209,7 @@ jobs:
         run: |
           set -euo pipefail
           cd dist/npm
-          main_pkg=$(ls @cc-claw-codex-0*.tgz 2>/dev/null | head -1)
+          main_pkg=$(ls cc-claw-codex-0*.tgz 2>/dev/null | head -1)
           if [ -n "$main_pkg" ]; then
             echo "Publishing main: $main_pkg"
             npm publish "$main_pkg" --access public 2>&1 || echo "Skipped: main may already exist"
